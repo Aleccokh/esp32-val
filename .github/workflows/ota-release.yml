@@ -38,23 +38,21 @@ jobs:
           GITHUB_REPO=${{ github.event.repository.name }}
           EOF
 
+      - name: Validate required CI secrets
+        run: |
+          test -n "${{ secrets.WIFI_SSID }}" || { echo "Missing secret: WIFI_SSID"; exit 1; }
+          test -n "${{ secrets.WIFI_PASSWORD }}" || { echo "Missing secret: WIFI_PASSWORD"; exit 1; }
+          test -n "${{ secrets.MQTT_HOST }}" || { echo "Missing secret: MQTT_HOST"; exit 1; }
+          test -n "${{ secrets.MQTT_PORT }}" || { echo "Missing secret: MQTT_PORT"; exit 1; }
+          test -n "${{ secrets.MQTT_USERNAME }}" || { echo "Missing secret: MQTT_USERNAME"; exit 1; }
+          test -n "${{ secrets.MQTT_PASSWORD }}" || { echo "Missing secret: MQTT_PASSWORD"; exit 1; }
+          case "${{ secrets.MQTT_PORT }}" in
+            ''|*[!0-9]*) echo "Invalid MQTT_PORT: must be an integer"; exit 1 ;;
+          esac
+
       - name: Generate include/Secrets.h for CI build
         run: |
-          mkdir -p include
-          cat > include/Secrets.h << EOF
-          #pragma once
-          #include <stdint.h>
-
-          static const char *WIFI_SSID = "${{ secrets.WIFI_SSID }}";
-          static const char *WIFI_PASSWORD = "${{ secrets.WIFI_PASSWORD }}";
-          static const char *MQTT_HOST = "${{ secrets.MQTT_HOST }}";
-          static const uint16_t MQTT_PORT = ${{ secrets.MQTT_PORT }};
-          static const char *MQTT_USERNAME = "${{ secrets.MQTT_USERNAME }}";
-          static const char *MQTT_PASSWORD = "${{ secrets.MQTT_PASSWORD }}";
-          static const char *MQTT_TOPIC_TEXT = "${{ secrets.MQTT_TOPIC_TEXT }}";
-          static const char *GITHUB_OWNER = "${{ github.repository_owner }}";
-          static const char *GITHUB_REPO = "${{ github.event.repository.name }}";
-          EOF
+          python scripts/generate_secrets_header.py
 
       - name: Build firmware
         env:
