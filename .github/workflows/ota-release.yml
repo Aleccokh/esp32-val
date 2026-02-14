@@ -38,6 +38,24 @@ jobs:
           GITHUB_REPO=${{ github.event.repository.name }}
           EOF
 
+      - name: Generate include/Secrets.h for CI build
+        run: |
+          mkdir -p include
+          cat > include/Secrets.h << EOF
+          #pragma once
+          #include <stdint.h>
+
+          static const char *WIFI_SSID = "${{ secrets.WIFI_SSID }}";
+          static const char *WIFI_PASSWORD = "${{ secrets.WIFI_PASSWORD }}";
+          static const char *MQTT_HOST = "${{ secrets.MQTT_HOST }}";
+          static const uint16_t MQTT_PORT = ${{ secrets.MQTT_PORT }};
+          static const char *MQTT_USERNAME = "${{ secrets.MQTT_USERNAME }}";
+          static const char *MQTT_PASSWORD = "${{ secrets.MQTT_PASSWORD }}";
+          static const char *MQTT_TOPIC_TEXT = "${{ secrets.MQTT_TOPIC_TEXT }}";
+          static const char *GITHUB_OWNER = "${{ github.repository_owner }}";
+          static const char *GITHUB_REPO = "${{ github.event.repository.name }}";
+          EOF
+
       - name: Build firmware
         env:
           PLATFORMIO_BUILD_FLAGS: -DFW_VERSION=\"${{ github.ref_name }}\"
