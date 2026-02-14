@@ -1,0 +1,57 @@
+name: Build and Publish OTA Firmware
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install PlatformIO
+        run: pip install platformio
+
+      - name: Create .env from GitHub Secrets
+        run: |
+          cat > .env << 'EOF'
+          WIFI_SSID=${{ secrets.WIFI_SSID }}
+          WIFI_PASSWORD=${{ secrets.WIFI_PASSWORD }}
+          MQTT_HOST=${{ secrets.MQTT_HOST }}
+          MQTT_PORT=${{ secrets.MQTT_PORT }}
+          MQTT_USERNAME=${{ secrets.MQTT_USERNAME }}
+          MQTT_PASSWORD=${{ secrets.MQTT_PASSWORD }}
+          MQTT_TOPIC_TEXT=${{ secrets.MQTT_TOPIC_TEXT }}
+          GITHUB_OWNER=${{ github.repository_owner }}
+          GITHUB_REPO=${{ github.event.repository.name }}
+          EOF
+
+      - name: Build firmware
+        env:
+          PLATFORMIO_BUILD_FLAGS: -DFW_VERSION=\"${{ github.ref_name }}\"
+        run: platformio run -e 4d_systems_esp32s3_gen4_r8n16
+
+      - name: Prepare release assets
+        run: |
+          mkdir -p dist
+          cp .pio/build/4d_systems_esp32s3_gen4_r8n16/firmware.bin dist/firmware.bin
+          echo "${GITHUB_REF_NAME#v}" > dist/version.txt
+
+      - name: Publish GitHub Release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist/firmware.bin
+            dist/version.txt
