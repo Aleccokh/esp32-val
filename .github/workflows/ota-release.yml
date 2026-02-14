@@ -62,7 +62,13 @@ jobs:
       - name: Prepare release assets
         run: |
           mkdir -p dist
-          cp .pio/build/4d_systems_esp32s3_gen4_r8n16/firmware.bin dist/firmware.bin
+          FIRMWARE_PATH="$(find . -type f -path "*/4d_systems_esp32s3_gen4_r8n16/firmware.bin" | head -n 1)"
+          if [ -z "$FIRMWARE_PATH" ]; then
+            echo "firmware.bin not found for environment 4d_systems_esp32s3_gen4_r8n16"
+            echo "Searched from: $(pwd)"
+            exit 1
+          fi
+          cp "$FIRMWARE_PATH" dist/firmware.bin
           echo "${GITHUB_REF_NAME#v}" > version.txt
           cp version.txt dist/version.txt
 
