@@ -47,7 +47,8 @@ jobs:
         run: |
           mkdir -p dist
           cp .pio/build/4d_systems_esp32s3_gen4_r8n16/firmware.bin dist/firmware.bin
-          echo "${GITHUB_REF_NAME#v}" > dist/version.txt
+          echo "${GITHUB_REF_NAME#v}" > version.txt
+          cp version.txt dist/version.txt
 
       - name: Publish GitHub Release assets
         uses: softprops/action-gh-release@v2

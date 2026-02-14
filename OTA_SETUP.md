@@ -19,6 +19,7 @@ The ESP32 checks these URLs:
 It compares `version.txt` with the local firmware version (`FW_VERSION`).
 
 - Local version default is set in `platformio.ini` as `0.0.0`.
+- Repository root includes `version.txt` (initial baseline value).
 - CI build injects tag version (for example `v1.2.0`) into `FW_VERSION`.
 
 ## 3) Configure GitHub repository secrets
@@ -52,6 +53,8 @@ The workflow will:
 2. Upload release assets:
    - `firmware.bin`
    - `version.txt` (contains tag without `v`, e.g. `1.0.0`)
+
+During release build, the workflow writes the tag value into `version.txt` and publishes it.
 
 ## 5) Trigger OTA on device
 

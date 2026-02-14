@@ -1,9 +1,21 @@
-import os
 import pathlib
 import re
 import sys
 
-PROJECT_DIR = pathlib.Path(__file__).resolve().parent.parent
+def resolve_project_dir() -> pathlib.Path:
+    try:
+        Import("env")
+        return pathlib.Path(env["PROJECT_DIR"]).resolve()
+    except Exception:
+        pass
+
+    if "__file__" in globals():
+        return pathlib.Path(__file__).resolve().parent.parent
+
+    return pathlib.Path.cwd().resolve()
+
+
+PROJECT_DIR = resolve_project_dir()
 ENV_FILE = PROJECT_DIR / ".env"
 OUT_FILE = PROJECT_DIR / "include" / "Secrets.h"
 
